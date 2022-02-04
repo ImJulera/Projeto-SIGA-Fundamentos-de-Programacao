@@ -413,10 +413,10 @@ void total_faturado_escola(t_escola vetor_escolas[], int numero_escolas, t_utili
                 id_utilizador = vetor_utlizadores[indice_utilizadores].id;
                 for(indice_transacoes = 0 ; indice_transacoes<numero_transacoes ; indice_transacoes++)
                 {
-                    if(strcmp(vetor_transacao[indice_transacoes].tipo_transacao, "Pagamento") == 0)
+                    if(strcmp(vetor_transacao[indice_transacoes].tipo_transacao, "Pagamento") == 0 && vetor_transacao[indice_transacoes].id_utilizador == id_utilizador)
                     {
+
                         total_faturado = (float)total_faturado + vetor_transacao[indice_transacoes].valor_transacao;
-                        fflush(stdin);
                     }
                 }
             }
@@ -435,7 +435,7 @@ int menu_opcoes()
 
     do
     {
-        system("cls");
+        //system("cls");
         printf("\n1 - Escolas\n2 - Utilizadores\n3 - Transacoes\n4 - Estatisticas\n5 - Gravar dados\n0 - Exit\nInsira: ");
         scanf("%d", &opcao);
     }while(opcao != 1 && opcao !=2 && opcao != 3 && opcao != 4 && opcao != 5 && opcao != 0);
@@ -487,7 +487,7 @@ int menu_estatisticas(void)
 
     do
     {
-        //system("cls");
+        system("cls");
         printf("\n1 - Total faturado por escola\n2 - Percentagens de transacoes\n3 - Total transacoes\n0 - Exit\nInsira: ");
         scanf("%d", &opcao);
     }while(opcao != 1 && opcao !=2 && opcao!=3 && opcao != 0);
@@ -692,7 +692,7 @@ void guardar_escolas(t_escola vetor_escolas[], int numero_escolas)
 
     if(ficheiro == NULL)
     {
-        printf("Ficheiro Inexistente!");
+        //printf("Ficheiro Inexistente!");
     }
     else
     {
@@ -709,7 +709,7 @@ void guardar_utilizadores(t_utilizador vetor_utlizadores[], int numero_utilizado
 
     if(ficheiro == NULL)
     {
-        printf("Ficheiro Inexistente!");
+        //printf("Ficheiro Inexistente!");
     }
     else
     {
@@ -726,7 +726,7 @@ void guardar_transacoes(t_transacao vetor_transacao[], int numero_transacoes)
 
     if(ficheiro == NULL)
     {
-        printf("Ficheiro Inexistente!");
+        //printf("Ficheiro Inexistente!");
     }
     else
     {
@@ -748,7 +748,7 @@ int ler_escolas(t_escola vetor_escolas[])
 
     if(ficheiro == NULL)
     {
-        printf("Ficheiro Inexistente!");
+        //printf("Ficheiro Inexistente!");
         return 0;
     }
     else
@@ -775,7 +775,7 @@ int ler_utilizadores(t_utilizador vetor_utlizadores[])
 
     if(ficheiro == NULL)
     {
-        printf("Ficheiro Inexistente!");
+        //printf("Ficheiro Inexistente!");
         return 0;
     }
     else
@@ -802,7 +802,7 @@ int ler_transacoes(t_transacao vetor_transacao[])
 
     if(ficheiro == NULL)
     {
-        printf("Ficheiro Inexistente!");
+        //printf("Ficheiro Inexistente!");
         return 0;
     }
     else
