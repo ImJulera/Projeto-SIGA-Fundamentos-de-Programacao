@@ -6,6 +6,7 @@
 #define MAX_ESCOLAS 5
 #define MAX_UTILIZADORES 200
 #define MAX_TRANSACOES 5000
+#define MAX_CARACTERES 120
 
 typedef struct
 {
@@ -17,10 +18,10 @@ struct tm *data_hora_atual;
 typedef struct
 {
     int id;
-    char nome[50];
-    char abreviatura[5];
+    char nome[MAX_CARACTERES];
+    char abreviatura[MAX_CARACTERES];
     int campus;
-    char localidade[50];
+    char localidade[MAX_CARACTERES];
 } t_escola;
 
 typedef struct
@@ -48,23 +49,40 @@ int menu_opcoes(void);
 int menu_escolas(void);
 int menu_utilizadores(void);
 int menu_transacoes(void);
+int menu_estatisticas(void);
 int ler_numero(int minimo, int maximo, char texto[50]);
+
+void guardar_escolas(t_escola vetor_escolas[], int numero_escolas);
+void guardar_utilizadores(t_utilizador vetor_utlizadores[], int numero_utilizadores);
+void guardar_transacoes(t_transacao vetor_transacao[], int numero_transacoes);
+
+int ler_escolas(t_escola vetor_escolas[]);
+int ler_utilizadores(t_utilizador vetor_utlizadores[]);
+int ler_transacoes(t_transacao vetor_transacao[]);
 
 int registar_escolas(t_escola vetor_escolas[], int numero_escolas);
 void mostrar_escolas(t_escola vetor_escolas[], int numero_escolas);
 void mostra_escola(t_escola vetor_escolas[], int numero_escolas);
 void verifica_escola(t_escola vetor_escolas[], int numero_escolas, t_utilizador vetor_utlizadores[], int numero_utilizadores);
+
 int registar_utilizadores(t_utilizador vetor_utlizadores[], int numero_utilizadores, t_escola vetor_escolas[], int numero_escolas);
 void mostrar_utilizadores(t_utilizador vetor_utlizadores[], int numero_utilizadores);
 void mostra_utilizador(t_utilizador vetor_utlizadores[], int numero_utilizadores);
+void tipo_utilizador(t_utilizador vetor_utlizadores[], int numero_utilizadores);
+void verifica_email(t_utilizador vetor_utlizadores[], int numero_utilizadores);
 void verifica_utilizador(t_utilizador vetor_utlizadores[], int numero_utilizadores, t_transacao vetor_transacao[], int numero_transacoes);
+
 int registar_transacoes(t_transacao vetor_transacao[], int numero_transacoes, t_utilizador vetor_utlizadores[], int numero_utilizadores);
 void mostrar_transacoes(t_transacao vetor_transacao[], int numero_transacoes);
 void mostrar_transacao(t_transacao vetor_transacao[], int numero_transacoes);
+void verifica_saldo(vetor_utlizadores, numero_utilizadores, vetor_transacao, numero_transacoes);
+
 void carregamentos_pagamentos(t_transacao vetor_transacao[], int numero_transacoes, t_utilizador vetor_utlizadores[], int numero_utilizadores);
 void carregamentos(t_transacao vetor_transacao[], int numero_transacoes, t_utilizador vetor_utlizadores[], int numero_utilizadores);
 void pagamentos(t_transacao vetor_transacao[], int numero_transacoes, t_utilizador vetor_utlizadores[], int numero_utilizadores);
 void data_info(t_transacao vetor_transacao[], int numero_transacoes);
+
+void total_faturado_escola(t_escola vetor_escolas[], int numero_escolas, t_utilizador vetor_utlizadores[], int numero_utilizadores, t_transacao vetor_transacao[], int numero_transacoes);
 
 
 
@@ -74,11 +92,14 @@ int main()
     t_escola vetor_escolas[MAX_ESCOLAS];
     t_utilizador vetor_utilizadores[MAX_UTILIZADORES];
     t_transacao vetor_transacoes[MAX_TRANSACOES];
-    int total_escolas = 0, total_utilizadores = 0, total_transacoes = 0,opcao_menu, opcao_escolas, opcao_utilizadores, opcao_transacoes;
+    int total_escolas = 0, total_utilizadores = 0, total_transacoes = 0,opcao_menu, opcao_escolas, opcao_utilizadores, opcao_transacoes, opcao_estatisticas;
+
+    total_escolas = ler_escolas(vetor_escolas);
+    total_utilizadores = ler_utilizadores(vetor_utilizadores);
+    total_transacoes = ler_transacoes(vetor_transacoes);
 
     do
     {
-
         opcao_menu = menu_opcoes();
 
         switch(opcao_menu)
@@ -155,9 +176,43 @@ int main()
                 }
             }while(opcao_transacoes != 0);
             break;
-        }
+        case 4:
+            do
+            {
+                opcao_estatisticas = menu_estatisticas();
 
+                switch(opcao_estatisticas)
+                {
+                case 1:
+                    total_faturado_escola(vetor_escolas, total_escolas, vetor_utilizadores, total_utilizadores, vetor_transacoes, total_transacoes);
+                    break;
+                case 2:
+                    printf("entrou na caso2");
+                    break;
+                case 3:
+                    printf("entrou na caso3");
+                    break;
+                }
+                if(opcao_transacoes != 0)
+                {
+                    fflush(stdin);
+                    getchar();
+                }
+            }while(opcao_estatisticas != 0);
+            break;
+        case 5:
+            guardar_escolas(vetor_escolas, total_escolas);
+            guardar_utilizadores(vetor_utilizadores, total_utilizadores);
+            guardar_transacoes(vetor_transacoes, total_transacoes);
+            if(opcao_transacoes != 0)
+            {
+                fflush(stdin);
+                getchar();
+            }
+            break;
+        }
     }while(opcao_menu != 0);
+
 }
 
 
@@ -233,8 +288,7 @@ int registar_utilizadores(t_utilizador vetor_utlizadores[], int numero_utilizado
     printf("\nInsira o nome: ");
     scanf(" %[^\n]s", vetor_utlizadores[numero_utilizadores].nome);
     vetor_utlizadores[numero_utilizadores].nif = ler_numero(100000000,999999999,"o NIF");
-    printf("\nInsira o tipo de utilizador (Estudante, Docente, Funcionario): ");
-    scanf(" %[^\n]s", vetor_utlizadores[numero_utilizadores].tipo_utilizador);
+    tipo_utilizador(vetor_utlizadores, numero_utilizadores);
     printf("\nInsira o email: ");
     scanf(" %[^\n]s", vetor_utlizadores[numero_utilizadores].email);
     vetor_utlizadores[numero_utilizadores].saldo = 0.00;
@@ -251,7 +305,7 @@ void mostrar_utilizadores(t_utilizador vetor_utlizadores[], int numero_utilizado
 
     for(indice ; indice<numero_utilizadores ; indice++)
     {
-        printf("\nID_aluno: %d\n", vetor_utlizadores[indice].id);
+        printf("\nID_utilizador: %d\n", vetor_utlizadores[indice].id);
         printf("ID_escola: %d\n", vetor_utlizadores[indice].id_escola);
         printf("Nome: %s\n", vetor_utlizadores[indice].nome);
         printf("NIF: %d\n", vetor_utlizadores[indice].nif);
@@ -275,7 +329,7 @@ void mostra_utilizador(t_utilizador vetor_utlizadores[], int numero_utilizadores
     {
         if(vetor_utlizadores[indice].id == id_utilizador)
         {
-            printf("\nID_aluno: %d\n", vetor_utlizadores[indice].id);
+            printf("\nID_utilizador: %d\n", vetor_utlizadores[indice].id);
             printf("ID_escola: %d\n", vetor_utlizadores[indice].id_escola);
             printf("Nome: %s\n", vetor_utlizadores[indice].nome);
             printf("NIF: %d\n", vetor_utlizadores[indice].nif);
@@ -291,8 +345,6 @@ void mostra_utilizador(t_utilizador vetor_utlizadores[], int numero_utilizadores
 
 int registar_transacoes(t_transacao vetor_transacao[], int numero_transacoes, t_utilizador vetor_utlizadores[], int numero_utilizadores)
 {
-    int id_utilizador, indice = 0;
-
     vetor_transacao[numero_transacoes].id = numero_transacoes;
     verifica_utilizador(vetor_utlizadores, numero_utilizadores, vetor_transacao, numero_transacoes);
     data_info(vetor_transacao, numero_transacoes);
@@ -309,7 +361,7 @@ void mostrar_transacoes(t_transacao vetor_transacao[], int numero_transacoes)
 
     for(indice ; indice<numero_transacoes ; indice++)
     {
-        printf("\nID: %d\n", vetor_transacao[indice].id);
+        printf("\n\nID: %d\n", vetor_transacao[indice].id);
         printf("ID Utilizador: %d\n", vetor_transacao[indice].id_utilizador);
         printf("Tipo de Transacao: %s\n", vetor_transacao[indice].tipo_transacao);
         printf("Valor da Transacao: %.2f\n", vetor_transacao[indice].valor_transacao);
@@ -342,6 +394,38 @@ void mostrar_transacao(t_transacao vetor_transacao[], int numero_transacoes)
     }
 }
 
+//------------------------------Estatisticas---------------------------------
+
+//-----------------------------Total Faturado--------------------------------
+
+void total_faturado_escola(t_escola vetor_escolas[], int numero_escolas, t_utilizador vetor_utlizadores[], int numero_utilizadores, t_transacao vetor_transacao[], int numero_transacoes)
+{
+    int indice_escolas, indice_utilizadores, indice_transacoes, id_escola, id_utilizador, id_transacao;
+    float total_faturado;
+
+    for(indice_escolas = 0 ; indice_escolas<numero_escolas ; indice_escolas++)
+    {
+        id_escola = vetor_escolas[indice_escolas].id;
+        for(indice_utilizadores = 0 ; indice_utilizadores<numero_utilizadores ; indice_utilizadores++)
+        {
+            if(vetor_utlizadores[indice_utilizadores].id_escola == id_escola)
+            {
+                id_utilizador = vetor_utlizadores[indice_utilizadores].id;
+                for(indice_transacoes = 0 ; indice_transacoes<numero_transacoes ; indice_transacoes++)
+                {
+                    if(strcmp(vetor_transacao[indice_transacoes].tipo_transacao, "Pagamento") == 0)
+                    {
+                        total_faturado = (float)total_faturado + vetor_transacao[indice_transacoes].valor_transacao;
+                        fflush(stdin);
+                    }
+                }
+            }
+        }
+        printf("\ntotal faturado pela escola %d: %.2f", id_escola,total_faturado);
+        total_faturado = 0;
+    }
+}
+
 
 //-----------------------------Menus--------------------------------
 
@@ -352,9 +436,9 @@ int menu_opcoes()
     do
     {
         system("cls");
-        printf("\n1 - Escolas\n2 - Utilizadores\n3 - Transacoes\n0 - Exit\nInsira: ");
+        printf("\n1 - Escolas\n2 - Utilizadores\n3 - Transacoes\n4 - Estatisticas\n5 - Gravar dados\n0 - Exit\nInsira: ");
         scanf("%d", &opcao);
-    }while(opcao != 1 && opcao !=2 && opcao != 3 && opcao != 0);
+    }while(opcao != 1 && opcao !=2 && opcao != 3 && opcao != 4 && opcao != 5 && opcao != 0);
     return opcao;
 }
 
@@ -397,6 +481,20 @@ int menu_transacoes(void)
     return opcao;
 }
 
+int menu_estatisticas(void)
+{
+    int opcao;
+
+    do
+    {
+        //system("cls");
+        printf("\n1 - Total faturado por escola\n2 - Percentagens de transacoes\n3 - Total transacoes\n0 - Exit\nInsira: ");
+        scanf("%d", &opcao);
+    }while(opcao != 1 && opcao !=2 && opcao!=3 && opcao != 0);
+    return opcao;
+}
+
+
 //----------------------------Ler numeros--------------------------
 
 int ler_numero(int minimo, int maximo, char texto[50])
@@ -404,7 +502,7 @@ int ler_numero(int minimo, int maximo, char texto[50])
     int numero;
     do
     {
-        printf("Insira %s entre %d e %d: ", texto, minimo, maximo);
+        printf("\nInsira %s entre %d e %d: ", texto, minimo, maximo);
         scanf("%d", &numero);
     }while(numero < minimo || numero > maximo);
 }
@@ -434,6 +532,52 @@ void verifica_escola(t_escola vetor_escolas[], int numero_escolas, t_utilizador 
             printf("Escola nao encontrada. Tente inserir um id valido!\n");
         }
     }while(exit != 0);
+}
+
+void tipo_utilizador(t_utilizador vetor_utlizadores[], int numero_utilizadores)
+{
+    int opcao;
+
+    do
+    {
+        printf("\n1 - Estudante\n2 - Docente\n3 - Funcionario\nInsira: ");
+        scanf("%d", &opcao);
+        if(opcao == 1)
+        {
+            strcpy(vetor_utlizadores[numero_utilizadores].tipo_utilizador, "Estudante");
+        }
+        else if(opcao == 2)
+        {
+            strcpy(vetor_utlizadores[numero_utilizadores].tipo_utilizador, "Docente");
+        }
+        else if(opcao == 3)
+        {
+            strcpy(vetor_utlizadores[numero_utilizadores].tipo_utilizador, "Funcionario");
+        }
+        if(opcao != 1 && opcao != 2 && opcao != 3)
+        {
+            printf("Valor invalido!");
+        }
+    }while(opcao != 1 && opcao != 2 && opcao != 3);
+}
+
+void verifica_email(t_utilizador vetor_utlizadores[], int numero_utilizadores)
+{
+    /*char email[50];
+    int indice, arroba = 0, ponto = 0;
+
+    printf("\nInsira o email: ");
+    scanf(" %[^\n]s", email);
+    int tamanho = strlen(email);
+
+    for(indice = 0; indice<tamanho ; indice++)
+    {
+        char caracter = email[indice];
+        if(caracter == '@' && indice < 3)
+        {
+
+        }
+    }*/
 }
 
 void verifica_utilizador(t_utilizador vetor_utlizadores[], int numero_utilizadores, t_transacao vetor_transacao[], int numero_transacoes)
@@ -482,7 +626,7 @@ void carregamentos_pagamentos(t_transacao vetor_transacao[], int numero_transaco
         }
         else if(opcao != 1 && opcao != 2)
         {
-            printf("Insira um valor válido!");
+            printf("\nInsira um valor valido!\n");
         }
     }while(opcao != 1 && opcao != 2);
 }
@@ -518,9 +662,160 @@ void carregamentos(t_transacao vetor_transacao[], int numero_transacoes, t_utili
 void pagamentos(t_transacao vetor_transacao[], int numero_transacoes, t_utilizador vetor_utlizadores[], int numero_utilizadores)
 {
     float valor;
+    int menu = 1;
 
-    printf("\nInsira o valor da transacao: ");
-    scanf("%f", &valor);
-    vetor_transacao[numero_transacoes].valor_transacao = vetor_transacao[numero_transacoes].valor_transacao - valor;
-    vetor_utlizadores[numero_utilizadores].saldo = vetor_utlizadores[numero_utilizadores].saldo - valor;
+    do
+    {
+        printf("\nInsira o valor da transacao: ");
+        scanf("%f", &valor);
+        if(vetor_utlizadores[numero_utilizadores].saldo - valor < 0)
+        {
+            printf("\nSaldo insuficiente!");
+        }
+        else
+        {
+            vetor_transacao[numero_transacoes].valor_transacao = vetor_transacao[numero_transacoes].valor_transacao - valor;
+            vetor_utlizadores[numero_utilizadores].saldo = vetor_utlizadores[numero_utilizadores].saldo - valor;
+        }
+        menu = 0;
+    }while(menu != 0);
 }
+
+
+//---------------------Guardar Ficheiros--------------------------
+
+void guardar_escolas(t_escola vetor_escolas[], int numero_escolas)
+{
+    FILE * ficheiro;
+
+    ficheiro = fopen("escolas.dat", "wb");
+
+    if(ficheiro == NULL)
+    {
+        printf("Ficheiro Inexistente!");
+    }
+    else
+    {
+        fwrite(vetor_escolas,sizeof(t_escola),numero_escolas,ficheiro);
+        fclose(ficheiro);
+    }
+}
+
+void guardar_utilizadores(t_utilizador vetor_utlizadores[], int numero_utilizadores)
+{
+    FILE * ficheiro;
+
+    ficheiro = fopen("utilizadores.dat", "wb");
+
+    if(ficheiro == NULL)
+    {
+        printf("Ficheiro Inexistente!");
+    }
+    else
+    {
+        fwrite(vetor_utlizadores,sizeof(t_utilizador),numero_utilizadores,ficheiro);
+        fclose(ficheiro);
+    }
+}
+
+void guardar_transacoes(t_transacao vetor_transacao[], int numero_transacoes)
+{
+    FILE * ficheiro;
+
+    ficheiro = fopen("transacoes.dat", "wb");
+
+    if(ficheiro == NULL)
+    {
+        printf("Ficheiro Inexistente!");
+    }
+    else
+    {
+        fwrite(vetor_transacao,sizeof(t_transacao),numero_transacoes,ficheiro);
+        fclose(ficheiro);
+    }
+}
+
+
+//---------------------Ler Ficheiros--------------------------
+
+int ler_escolas(t_escola vetor_escolas[])
+{
+    FILE * ficheiro;
+
+    int numero_elementos = 0, numero_bytes = 0;
+
+    ficheiro = fopen("escolas.dat", "rb");
+
+    if(ficheiro == NULL)
+    {
+        printf("Ficheiro Inexistente!");
+        return 0;
+    }
+    else
+    {
+        fseek(ficheiro,0L, SEEK_END);
+        numero_bytes=ftell(ficheiro);
+        numero_elementos= numero_bytes/sizeof(t_escola);
+        fseek(ficheiro,0L, SEEK_SET);
+
+        fread(vetor_escolas,sizeof(t_escola),numero_elementos,ficheiro);
+        fclose(ficheiro);
+
+        return numero_elementos;
+    }
+}
+
+int ler_utilizadores(t_utilizador vetor_utlizadores[])
+{
+    FILE * ficheiro;
+
+    int numero_elementos, numero_bytes;
+
+    ficheiro = fopen("utilizadores.dat", "rb");
+
+    if(ficheiro == NULL)
+    {
+        printf("Ficheiro Inexistente!");
+        return 0;
+    }
+    else
+    {
+        fseek(ficheiro,0L, SEEK_END);
+        numero_bytes=ftell(ficheiro);
+        numero_elementos= numero_bytes/sizeof(t_utilizador);
+        fseek(ficheiro,0L, SEEK_SET);
+
+        fread(vetor_utlizadores,sizeof(t_utilizador),numero_elementos,ficheiro);
+        fclose(ficheiro);
+
+        return numero_elementos;
+    }
+}
+
+int ler_transacoes(t_transacao vetor_transacao[])
+{
+    FILE * ficheiro;
+
+    int numero_elementos, numero_bytes;
+
+    ficheiro = fopen("transacoes.dat", "rb");
+
+    if(ficheiro == NULL)
+    {
+        printf("Ficheiro Inexistente!");
+        return 0;
+    }
+    else
+    {
+        fseek(ficheiro,0L, SEEK_END);
+        numero_bytes=ftell(ficheiro);
+        numero_elementos= numero_bytes/sizeof(t_transacao);
+        fseek(ficheiro,0L, SEEK_SET);
+
+        fread(vetor_transacao,sizeof(t_transacao),numero_elementos,ficheiro);
+        fclose(ficheiro);
+
+        return numero_elementos;
+    }
+}
+
