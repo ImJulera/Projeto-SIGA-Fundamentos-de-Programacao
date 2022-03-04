@@ -50,7 +50,7 @@ int menu_escolas(void);
 int menu_utilizadores(void);
 int menu_transacoes(void);
 int menu_estatisticas(void);
-int ler_numero(int minimo, int maximo, char texto[50]);
+int ler_NIF(int minimo, int maximo);
 
 void guardar_escolas(t_escola vetor_escolas[], int numero_escolas);
 void guardar_utilizadores(t_utilizador vetor_utlizadores[], int numero_utilizadores);
@@ -83,8 +83,8 @@ void pagamentos(t_transacao vetor_transacao[], int numero_transacoes, t_utilizad
 void data_info(t_transacao vetor_transacao[], int numero_transacoes);
 
 void total_faturado_escola(t_escola vetor_escolas[], int numero_escolas, t_utilizador vetor_utlizadores[], int numero_utilizadores, t_transacao vetor_transacao[], int numero_transacoes);
-
-
+void percentagem_transacoes(t_escola vetor_escolas[], int numero_escolas, t_utilizador vetor_utlizadores[], int numero_utilizadores, t_transacao vetor_transacao[], int numero_transacoes);
+float soma_todas_transacoes(t_transacao vetor_transacao[], int numero_transacoes);
 
 
 int main()
@@ -187,7 +187,7 @@ int main()
                     total_faturado_escola(vetor_escolas, total_escolas, vetor_utilizadores, total_utilizadores, vetor_transacoes, total_transacoes);
                     break;
                 case 2:
-                    printf("entrou na caso2");
+                    percentagem_transacoes(vetor_escolas, total_escolas, vetor_utilizadores, total_utilizadores, vetor_transacoes, total_transacoes);
                     break;
                 case 3:
                     printf("entrou na caso3");
@@ -222,18 +222,25 @@ int registar_escolas(t_escola vetor_escolas[], int numero_escolas)
 {
     int campus;
 
-    vetor_escolas[numero_escolas].id = numero_escolas;
-    printf("\nInsira o nome da escola: ");
-    scanf(" %[^\n]s", vetor_escolas[numero_escolas].nome);
-    printf("\nInsira a abreviatura da escola: ");
-    scanf(" %[^\n]s", vetor_escolas[numero_escolas].abreviatura);
-    printf("\nInsira o campus da escola: ");
-    scanf("%d", &campus);
-    vetor_escolas[numero_escolas].campus = campus;
-    printf("\nInsira a localidade da escola: ");
-    scanf(" %[^\n]s", vetor_escolas[numero_escolas].localidade);
+    if(numero_escolas < MAX_ESCOLAS)
+    {
+        vetor_escolas[numero_escolas].id = numero_escolas;
+        printf("\nInsira o nome da escola: ");
+        scanf(" %[^\n]s", vetor_escolas[numero_escolas].nome);
+        printf("\nInsira a abreviatura da escola: ");
+        scanf(" %[^\n]s", vetor_escolas[numero_escolas].abreviatura);
+        printf("\nInsira o campus da escola: ");
+        scanf("%d", &campus);
+        vetor_escolas[numero_escolas].campus = campus;
+        printf("\nInsira a localidade da escola: ");
+        scanf(" %[^\n]s", vetor_escolas[numero_escolas].localidade);
 
-    return numero_escolas+1;
+        return numero_escolas+1;
+    }
+    else
+    {
+        printf("\nImpossivel inserir mais escolas!");
+    }
 }
 
 
@@ -283,17 +290,24 @@ int registar_utilizadores(t_utilizador vetor_utlizadores[], int numero_utilizado
 {
     int indice = 0, exit = 1;
 
-    vetor_utlizadores[numero_utilizadores].id = numero_utilizadores;
-    verifica_escola(vetor_escolas, numero_escolas, vetor_utlizadores, numero_utilizadores);
-    printf("\nInsira o nome: ");
-    scanf(" %[^\n]s", vetor_utlizadores[numero_utilizadores].nome);
-    vetor_utlizadores[numero_utilizadores].nif = ler_numero(100000000,999999999,"o NIF");
-    tipo_utilizador(vetor_utlizadores, numero_utilizadores);
-    printf("\nInsira o email: ");
-    scanf(" %[^\n]s", vetor_utlizadores[numero_utilizadores].email);
-    vetor_utlizadores[numero_utilizadores].saldo = 0.00;
+    if(numero_utilizadores < MAX_UTILIZADORES)
+    {
+        vetor_utlizadores[numero_utilizadores].id = numero_utilizadores;
+        verifica_escola(vetor_escolas, numero_escolas, vetor_utlizadores, numero_utilizadores);
+        printf("\nInsira o nome: ");
+        scanf(" %[^\n]s", vetor_utlizadores[numero_utilizadores].nome);
+        vetor_utlizadores[numero_utilizadores].nif = ler_NIF(100000000,999999999);
+        tipo_utilizador(vetor_utlizadores, numero_utilizadores);
+        printf("\nInsira o email: ");
+        scanf(" %[^\n]s", vetor_utlizadores[numero_utilizadores].email);
+        vetor_utlizadores[numero_utilizadores].saldo = 0.00;
 
-    return numero_utilizadores+1;
+        return numero_utilizadores+1;
+    }
+    else
+    {
+        printf("\nImpossivel adicionar mais utilizadores!\n");
+    }
 }
 
 
@@ -345,11 +359,18 @@ void mostra_utilizador(t_utilizador vetor_utlizadores[], int numero_utilizadores
 
 int registar_transacoes(t_transacao vetor_transacao[], int numero_transacoes, t_utilizador vetor_utlizadores[], int numero_utilizadores)
 {
-    vetor_transacao[numero_transacoes].id = numero_transacoes;
-    verifica_utilizador(vetor_utlizadores, numero_utilizadores, vetor_transacao, numero_transacoes);
-    data_info(vetor_transacao, numero_transacoes);
+    if(numero_transacoes < MAX_TRANSACOES)
+    {
+        vetor_transacao[numero_transacoes].id = numero_transacoes;
+        verifica_utilizador(vetor_utlizadores, numero_utilizadores, vetor_transacao, numero_transacoes);
+        data_info(vetor_transacao, numero_transacoes);
 
-    return numero_transacoes+1;
+        return numero_transacoes+1;
+    }
+    else
+    {
+        printf("Impossivel realizar mais transacoes!");
+    }
 }
 
 
@@ -394,12 +415,34 @@ void mostrar_transacao(t_transacao vetor_transacao[], int numero_transacoes)
     }
 }
 
+//-------------------------Soma Todas As Transacoes--------------------------
+
+
+float soma_todas_transacoes(t_transacao vetor_transacao[], int numero_transacoes)
+{
+    int indice_transacoes;
+    float total_transacoes = 0;
+
+    for(indice_transacoes = 0 ; indice_transacoes<numero_transacoes ; indice_transacoes++)
+    {
+        if(strcmp(vetor_transacao[indice_transacoes].tipo_transacao, "Pagamento") == 0)
+        {
+            total_transacoes = (float)total_transacoes + vetor_transacao[indice_transacoes].valor_transacao;
+        }
+    }
+
+    //printf("Valor total de transacoes: %.2f", total_transacoes);
+    return total_transacoes;
+}
+
+
 //------------------------------Estatisticas---------------------------------
 
 //-----------------------------Total Faturado--------------------------------
 
 void total_faturado_escola(t_escola vetor_escolas[], int numero_escolas, t_utilizador vetor_utlizadores[], int numero_utilizadores, t_transacao vetor_transacao[], int numero_transacoes)
 {
+    printf("\nentrou no faturado\n");
     int indice_escolas, indice_utilizadores, indice_transacoes, id_escola, id_utilizador, id_transacao;
     float total_faturado;
 
@@ -415,13 +458,46 @@ void total_faturado_escola(t_escola vetor_escolas[], int numero_escolas, t_utili
                 {
                     if(strcmp(vetor_transacao[indice_transacoes].tipo_transacao, "Pagamento") == 0 && vetor_transacao[indice_transacoes].id_utilizador == id_utilizador)
                     {
-
                         total_faturado = (float)total_faturado + vetor_transacao[indice_transacoes].valor_transacao;
                     }
                 }
             }
         }
         printf("\ntotal faturado pela escola %d: %.2f", id_escola,total_faturado);
+        total_faturado = 0;
+    }
+}
+
+
+//--------------------------Percentagem Pagamentos-----------------------------
+
+void percentagem_transacoes(t_escola vetor_escolas[], int numero_escolas, t_utilizador vetor_utlizadores[], int numero_utilizadores, t_transacao vetor_transacao[], int numero_transacoes)
+{
+    float percentagem;
+
+    printf("\nentrou na percentagem\n");
+    int indice_escolas, indice_utilizadores, indice_transacoes, id_escola, id_utilizador, id_transacao;
+    float total_faturado;
+
+    for(indice_escolas = 0 ; indice_escolas<numero_escolas ; indice_escolas++)
+    {
+        id_escola = vetor_escolas[indice_escolas].id;
+        for(indice_utilizadores = 0 ; indice_utilizadores<numero_utilizadores ; indice_utilizadores++)
+        {
+            if(vetor_utlizadores[indice_utilizadores].id_escola == id_escola)
+            {
+                id_utilizador = vetor_utlizadores[indice_utilizadores].id;
+                for(indice_transacoes = 0 ; indice_transacoes<numero_transacoes ; indice_transacoes++)
+                {
+                    if(strcmp(vetor_transacao[indice_transacoes].tipo_transacao, "Pagamento") == 0 && vetor_transacao[indice_transacoes].id_utilizador == id_utilizador)
+                    {
+                        total_faturado = (float)total_faturado + vetor_transacao[indice_transacoes].valor_transacao;
+                    }
+                }
+            }
+        }
+        percentagem = (float)(total_faturado*100)/soma_todas_transacoes(vetor_transacao, numero_transacoes);
+        printf("\nPercentagem de transacoes da escola %d: %.2f%%", id_escola,percentagem);
         total_faturado = 0;
     }
 }
@@ -435,9 +511,10 @@ int menu_opcoes()
 
     do
     {
-        //system("cls");
+        system("cls");
         printf("\n1 - Escolas\n2 - Utilizadores\n3 - Transacoes\n4 - Estatisticas\n5 - Gravar dados\n0 - Exit\nInsira: ");
         scanf("%d", &opcao);
+        fflush(stdin);
     }while(opcao != 1 && opcao !=2 && opcao != 3 && opcao != 4 && opcao != 5 && opcao != 0);
     return opcao;
 }
@@ -451,6 +528,7 @@ int menu_escolas(void)
         system("cls");
         printf("\n1 - Registar Escolas\n2 - Consultar Escolas\n3 - Consulte Escola\n0 - Exit\nInsira: ");
         scanf("%d", &opcao);
+        fflush(stdin);
     }while(opcao != 1 && opcao !=2 && opcao!=3 && opcao != 0);
     return opcao;
 }
@@ -464,6 +542,7 @@ int menu_utilizadores(void)
         system("cls");
         printf("\n1 - Registar Utilizador\n2 - Consultar Utilizadores\n3 - Consulte Utilizador\n0 - Exit\nInsira: ");
         scanf("%d", &opcao);
+        fflush(stdin);
     }while(opcao != 1 && opcao !=2 && opcao!=3 && opcao != 0);
     return opcao;
 }
@@ -477,6 +556,7 @@ int menu_transacoes(void)
         system("cls");
         printf("\n1 - Registar Transacao\n2 - Consultar Transacao\n3 - Consulte Transacao\n0 - Exit\nInsira: ");
         scanf("%d", &opcao);
+        fflush(stdin);
     }while(opcao != 1 && opcao !=2 && opcao!=3 && opcao != 0);
     return opcao;
 }
@@ -487,9 +567,10 @@ int menu_estatisticas(void)
 
     do
     {
-        system("cls");
+        //system("cls");
         printf("\n1 - Total faturado por escola\n2 - Percentagens de transacoes\n3 - Total transacoes\n0 - Exit\nInsira: ");
         scanf("%d", &opcao);
+        fflush(stdin);
     }while(opcao != 1 && opcao !=2 && opcao!=3 && opcao != 0);
     return opcao;
 }
@@ -497,12 +578,12 @@ int menu_estatisticas(void)
 
 //----------------------------Ler numeros--------------------------
 
-int ler_numero(int minimo, int maximo, char texto[50])
+int ler_NIF(int minimo, int maximo)
 {
     int numero;
     do
     {
-        printf("\nInsira %s entre %d e %d: ", texto, minimo, maximo);
+        printf("\nInsira o NIF entre (MIN.9 Digitos): ");
         scanf("%d", &numero);
     }while(numero < minimo || numero > maximo);
 }
